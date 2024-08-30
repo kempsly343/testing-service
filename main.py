@@ -1,5 +1,3 @@
-#----------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------
 from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
@@ -9,6 +7,7 @@ from PIL import Image
 import cv2
 import os
 from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,17 +21,34 @@ CONFIGURATION = {
                     "ENGAGEMENT RINGS", "ENGAGEMENT SET", "FASHION RINGS", "NECKLACES", "WEDDING BANDS"],
 }
 
-# Local model path
+# Azure Blob Storage configuration
+AZURE_STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+CONTAINER_NAME = os.getenv('CONTAINER_NAME')
+BLOB_NAME = os.getenv('BLOB_NAME')
 LOCAL_MODEL_PATH = 'models/update_lenet_model_save.h5'
 
 # Global model and inference function
 model = None
 
+def download_file_from_azure_blob():
+    blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
+    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=BLOB_NAME)
+    
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(LOCAL_MODEL_PATH), exist_ok=True)
+    
+    with open(LOCAL_MODEL_PATH, "wb") as file:
+        download_stream = blob_client.download_blob()
+        file.write(download_stream.readall())
+    
+    print("File downloaded from Azure Blob Storage.")
+
 def init_model():
     global model
     # Check if the model file exists
     if not os.path.exists(LOCAL_MODEL_PATH):
-        raise FileNotFoundError(f"Model file not found at {LOCAL_MODEL_PATH}")
+        print("Model file not found. Downloading from Azure Blob Storage...")
+        download_file_from_azure_blob()
     # Load the Keras model
     model = tf.keras.models.load_model(LOCAL_MODEL_PATH)
     print("Model loaded successfully.")
@@ -91,4 +107,4 @@ def hello():
 
 if __name__ == '__main__':
     init_model()  # Initialize the model before starting the server
-    app.run(debug=False)
+    app.run()

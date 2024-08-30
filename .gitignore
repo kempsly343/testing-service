@@ -82,7 +82,7 @@ target/
 profile_default/
 ipython_config.py
 
-models/*.h5
+# models/*.h5
 
 
 # pyenv
