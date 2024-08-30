@@ -4,3 +4,4 @@ numpy
 requests
 pillow
 opencv-python
+gunicorn==20.2.0
