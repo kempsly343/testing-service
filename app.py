@@ -177,4 +177,4 @@ def hello():
 
 if __name__ == '__main__':
     init_model()  # Initialize the model before starting the server
-    app.run()
+    app.run(debug=False)

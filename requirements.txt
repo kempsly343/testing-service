@@ -4,6 +4,9 @@ numpy
 requests
 pillow
 opencv-python
-gunicorn
+# gunicorn
 python-dotenv
 azure-storage-blob
+
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
